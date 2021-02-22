@@ -46,9 +46,11 @@ pipeline {
                 sshCommand remote: control, command: '''
                     hostname
                     cd /tmp
-                    git clone https://github.com/sandervanvugt/ansible-3h
+                    rm -rf ansible-demo
+                    git clone https://github.com/fitchdev/ansible-demo
+                    cp /tmp/ansible-demo/demo.yml /home/ansible/test
                     cd /home/ansible/test
-                    ansible-playbook test.yml
+                    ansible-playbook demo.yml
                 '''
             }
         }
