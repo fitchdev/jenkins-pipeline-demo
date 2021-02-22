@@ -1,0 +1,56 @@
+def control = [:]
+    control.name = 'test'
+    control.host = '192.168.31.200'
+    control.user = 'ansible'
+    control.password = 'password'
+    control.allowAnyHosts = true
+    
+def ansible1 = [:]
+    ansible1.name = 'test'
+    ansible1.host = '192.168.31.221'
+    ansible1.user = 'ansible'
+    ansible1.password = 'password'
+    ansible1.allowAnyHosts = true
+    
+def ansible2 = [:]
+    ansible2.name = 'test'
+    ansible2.host = '192.168.31.222'
+    ansible2.user = 'ansible'
+    ansible2.password = 'password'
+    ansible2.allowAnyHosts = true
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Hello') {
+            steps {
+                echo 'Hello World'
+                script {
+                    sh '''
+                        sftp ansible@192.168.31.200
+                        sftp ansible@192.168.31.221
+                        sftp ansible@192.168.31.222
+                        ssh ansible@192.168.31.200 "hostname; cd /home/ansible/test; ansible-playbook test.yml"
+                        ssh ansible@192.168.31.221 "date && hostname"
+                        ssh ansible@192.168.31.222 "date ; hostname"
+                    '''
+                }
+            }
+        }
+        
+        stage('Remote SSH') {
+            steps {
+                sshCommand remote: ansible1, command: "hostname"
+                sshCommand remote: ansible2, command: "hostname"
+                sshCommand remote: control, command: '''
+                    hostname
+                    cd /tmp
+                    git clone https://github.com/sandervanvugt/ansible-3h
+                    cd /home/ansible/test
+                    ansible-playbook test.yml
+                '''
+            }
+        }
+    }
+}
